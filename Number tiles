@@ -1,0 +1,70 @@
+const content = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Number Tiles 0–9 — Draggable</title>
+<style>
+  :root{ --tile-size:90px; --tile-radius:10px; --tile-color:#ffbf00; --num-color:#111; }
+  body{margin:0;font-family:sans-serif;background:#f6f8fa}
+  #board{position:relative;height:90vh;margin:10px;border:2px dashed #ccc;border-radius:8px;background:white;overflow:hidden}
+  .tile{position:absolute;width:var(--tile-size);height:var(--tile-size);border-radius:var(--tile-radius);
+    display:flex;align-items:center;justify-content:center;font-size:2em;font-weight:bold;
+    background:var(--tile-color);color:var(--num-color);cursor:grab;box-shadow:0 6px 12px rgba(0,0,0,0.15);user-select:none}
+  .tile.dragging{cursor:grabbing;transform:scale(1.05);z-index:9999}
+  .pattern.stripes{background-image:linear-gradient(90deg, rgba(255,255,255,0.9) 10%, transparent 10% 50%);background-size:12px 12px;}
+  .pattern.polka{background-image:radial-gradient(circle at 8px 8px, rgba(255,255,255,0.9) 5px, transparent 6px);background-size:22px 22px;}
+</style>
+</head>
+<body>
+<div id="board"></div>
+<script>
+(function(){
+  const board=document.getElementById('board');
+  const size=90, gap=20, cols=5;
+  let z=1;
+  function makeTile(n,x,y){
+    const el=document.createElement('div');
+    el.className='tile pattern polka'; // change to 'pattern stripes' or remove for solid
+    el.textContent=n;
+    el.style.left=x+'px';
+    el.style.top=y+'px';
+    el.style.background='#4a90e2'; // <-- change color here
+    board.appendChild(el);
+    let ox,oy,sx,sy,drag=false;
+    el.addEventListener('pointerdown',e=>{
+      drag=true; el.classList.add('dragging'); z++; el.style.zIndex=z;
+      sx=e.clientX; sy=e.clientY;
+      ox=parseInt(el.style.left); oy=parseInt(el.style.top);
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove',e=>{
+      if(!drag) return;
+      let nx=ox+(e.clientX-sx), ny=oy+(e.clientY-sy);
+      nx=Math.max(0,Math.min(nx,board.clientWidth-size));
+      ny=Math.max(0,Math.min(ny,board.clientHeight-size));
+      el.style.left=nx+'px'; el.style.top=ny+'px';
+    });
+    el.addEventListener('pointerup',()=>{drag=false;el.classList.remove('dragging')});
+  }
+  const startX=(board.clientWidth-(cols*size+(cols-1)*gap))/2;
+  const startY=40;
+  for(let i=0;i<10;i++){
+    const r=Math.floor(i/cols), c=i%cols;
+    const x=startX+c*(size+gap), y=startY+r*(size+gap);
+    makeTile(i,x,y);
+  }
+})();
+</script>
+</body>
+</html>`;
+
+const blob = new Blob([content], {type: 'text/html'});
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = 'number-tiles-0-9.html';
+document.body.appendChild(a);
+a.click();
+a.remove();
+URL.revokeObjectURL(url);
